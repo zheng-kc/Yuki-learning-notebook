@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PDF 工具</title>
+<style>
+  :root {
+    --primary: #6366f1;
+    --primary2: #3b82f6;
+    --bg: #f4f6fb;
+    --text: #1f2937;
+    --muted: #6b7280;
+    --border: #e5e7eb;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+  .container { max-width: 720px; margin: 0 auto; padding: 40px 20px 60px; }
+  header { text-align: center; margin-bottom: 28px; }
+  header h1 {
+    font-size: 30px;
+    background: linear-gradient(135deg, var(--primary), var(--primary2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  header p { color: var(--muted); margin-top: 6px; font-size: 14px; }
+  .tabs {
+    display: flex; gap: 6px; background: #e6e9f0; padding: 6px;
+    border-radius: 12px; margin-bottom: 20px;
+  }
+  .tab {
+    flex: 1; padding: 10px; border: none; background: transparent; border-radius: 8px;
+    cursor: pointer; font-size: 15px; color: #4b5563; transition: all .2s;
+  }
+  .tab.active { background: #fff; color: var(--primary); font-weight: 600; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+  .panel { display: none; }
+  .panel.active { display: block; }
+  .card { background: #fff; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,.06); }
+  .field { margin-bottom: 18px; }
+  .field label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px; color: #374151; }
+  .field input[type=text], .field input[type=number] {
+    width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px;
+  }
+  .field input[type=file] {
+    display: block; width: 100%; padding: 14px; border: 1px dashed #c7cdd8; border-radius: 10px;
+    background: #fafbfd; cursor: pointer; font-size: 14px;
+  }
+  .hint { font-size: 12px; color: #9ca3af; margin-top: 6px; }
+  .btn {
+    padding: 12px 26px; border: none; border-radius: 12px; font-size: 15px; font-weight: 600;
+    color: #fff; cursor: pointer; background: linear-gradient(135deg, var(--primary), var(--primary2));
+    transition: opacity .2s, transform .1s;
+  }
+  .btn:hover { opacity: .92; }
+  .btn:active { transform: translateY(1px); }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .result { margin-top: 22px; }
+  .result-item {
+    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    padding: 10px 14px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px;
+  }
+  .result-item span { word-break: break-all; font-size: 14px; }
+  .result-item a { color: var(--primary); text-decoration: none; font-weight: 600; white-space: nowrap; }
+  .error { color: #dc2626; font-size: 14px; }
+  .success { color: #16a34a; font-size: 14px; }
+  .processing { color: var(--muted); font-size: 14px; }
+  .file-row {
+    display: flex; justify-content: space-between; align-items: center; gap: 10px;
+    padding: 9px 12px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px;
+  }
+  .file-row .file-name { font-size: 14px; word-break: break-all; }
+  .file-row .file-actions { display: flex; gap: 4px; flex-shrink: 0; }
+  .file-actions button {
+    min-width: 30px; height: 30px; border: 1px solid var(--border); background: #fff;
+    border-radius: 8px; cursor: pointer; font-size: 13px; color: #374151;
+  }
+  .file-actions button:hover { background: #f3f4f6; }
+  .file-actions button:disabled { opacity: .4; cursor: not-allowed; }
+  .file-actions .remove { color: #dc2626; border-color: #fecaca; }
+</style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>PDF 工具</h1>
+      <p>按页码范围拆分 · 多文件拼接</p>
+    </header>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="split" onclick="switchTab('split')">拆分</button>
+      <button class="tab" data-tab="merge" onclick="switchTab('merge')">拼接</button>
+    </div>
+
+    <!-- 拆分面板 -->
+    <div class="panel active" id="panel-split">
+      <div class="card">
+        <div class="field">
+          <label>上传 PDF 文件</label>
+          <input type="file" id="split-file" accept="application/pdf">
+        </div>
+        <div class="field">
+          <label>PDF页码范围</label>
+          <input type="text" id="split-ranges" placeholder="201-384,496-568">
+          <div class="hint">直接按 PDF 页码裁剪（不使用偏移），多段用逗号分隔</div>
+        </div>
+        <div class="field">
+          <label>书本页码范围</label>
+          <input type="text" id="split-book-ranges" placeholder="100-200">
+          <div class="hint">输入书本页码，配合下方偏移量自动换算为 PDF 页码</div>
+        </div>
+        <div class="field">
+          <label>每段名称（可选）</label>
+          <input type="text" id="split-names" placeholder="例如：心血管,泌尿">
+          <div class="hint">名称数量需与页码范围数量一致，用逗号分隔</div>
+        </div>
+        <div class="field">
+          <label>目录页码偏移</label>
+          <input type="number" id="split-offset" min="0" step="1" value="0" placeholder="7">
+          <div class="hint">PDF页码 = 书本页码 + 偏移，仅在填写书本页码范围时生效</div>
+        </div>
+        <div class="field">
+          <label>保存位置（可选）</label>
+          <input type="text" id="split-outdir" placeholder="test/pdf-tools/pdf-output 或留空用默认">
+          <div class="hint">留空则输出到默认临时目录</div>
+        </div>
+        <button class="btn" onclick="doSplit()">拆分</button>
+        <div class="result" id="split-result"></div>
+      </div>
+    </div>
+
+    <!-- 拼接面板 -->
+    <div class="panel" id="panel-merge">
+      <div class="card">
+        <div class="field">
+          <label>上传多个 PDF 文件（可调整顺序）</label>
+          <input type="file" id="merge-file" accept="application/pdf" multiple onchange="onMergeFilesSelected(this)">
+        </div>
+        <div class="result" id="merge-list"></div>
+        <div class="field">
+          <label>保存位置（可选）</label>
+          <input type="text" id="merge-outdir" placeholder="test/pdf-tools/pdf-output 或留空用默认">
+          <div class="hint">留空则输出到默认临时目录</div>
+        </div>
+        <button class="btn" onclick="doMerge()">拼接</button>
+        <div class="result" id="merge-result"></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const state = { mergeFiles: [] };
+
+  function switchTab(name) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+    document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + name));
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  async function doSplit() {
+    const fileInput = document.getElementById('split-file');
+    const pdfRanges = document.getElementById('split-ranges').value.trim();
+    const bookRanges = document.getElementById('split-book-ranges').value.trim();
+    const names = document.getElementById('split-names').value.trim();
+    const offset = document.getElementById('split-offset').value;
+    const outDir = document.getElementById('split-outdir').value.trim();
+    const box = document.getElementById('split-result');
+    if (!fileInput.files.length) { box.innerHTML = '<div class="error">请先选择 PDF 文件</div>'; return; }
+    if ((pdfRanges && bookRanges) || (!pdfRanges && !bookRanges)) {
+      alert('PDF页码与书本页码请二选一');
+      return;
+    }
+
+    const fd = new FormData();
+    fd.append('file', fileInput.files[0]);
+    if (bookRanges) {
+      fd.append('book_ranges', bookRanges);
+      fd.append('offset', offset);
+    } else {
+      fd.append('ranges', pdfRanges);
+    }
+    fd.append('names', names);
+    fd.append('out_dir', outDir);
+    box.innerHTML = '<div class="processing">处理中…</div>';
+    try {
+      const resp = await fetch('/api/split', { method: 'POST', body: fd });
+      const data = await resp.json();
+      if (!resp.ok || !data.ok) { box.innerHTML = '<div class="error">' + escapeHtml(data.error || '拆分失败') + '</div>'; return; }
+      box.innerHTML = data.files.map(f => {
+        const rangeLabel = f.pdf_range ? '（实际PDF页码:' + f.pdf_range + '）' : '';
+        return '<div class="result-item"><span>' + escapeHtml((f.path || f.name) + rangeLabel) + '</span><a href="' + f.url + '" download>下载</a></div>';
+      }).join('');
+    } catch (e) {
+      box.innerHTML = '<div class="error">请求失败：' + escapeHtml(e.message) + '</div>';
+    }
+  }
+
+  function onMergeFilesSelected(input) {
+    state.mergeFiles = Array.from(input.files);
+    renderMergeList();
+  }
+
+  function renderMergeList() {
+    const box = document.getElementById('merge-list');
+    if (!state.mergeFiles.length) { box.innerHTML = '<div class="hint">尚未选择文件</div>'; return; }
+    box.innerHTML = state.mergeFiles.map((f, i) =>
+      '<div class="file-row">' +
+        '<span class="file-name">' + (i + 1) + '. ' + escapeHtml(f.name) + '</span>' +
+        '<span class="file-actions">' +
+          '<button onclick="moveFile(' + i + ',-1)" ' + (i === 0 ? 'disabled' : '') + ' title="上移">↑</button>' +
+          '<button onclick="moveFile(' + i + ',1)" ' + (i === state.mergeFiles.length - 1 ? 'disabled' : '') + ' title="下移">↓</button>' +
+          '<button class="remove" onclick="removeFile(' + i + ')">移除</button>' +
+        '</span>' +
+      '</div>'
+    ).join('');
+  }
+
+  function moveFile(index, delta) {
+    const j = index + delta;
+    if (j < 0 || j >= state.mergeFiles.length) return;
+    const tmp = state.mergeFiles[index];
+    state.mergeFiles[index] = state.mergeFiles[j];
+    state.mergeFiles[j] = tmp;
+    renderMergeList();
+  }
+
+  function removeFile(index) {
+    state.mergeFiles.splice(index, 1);
+    renderMergeList();
+  }
+
+  async function doMerge() {
+    const box = document.getElementById('merge-result');
+    const outDir = document.getElementById('merge-outdir').value.trim();
+    if (!state.mergeFiles.length) { box.innerHTML = '<div class="error">请先选择 PDF 文件</div>'; return; }
+
+    const fd = new FormData();
+    state.mergeFiles.forEach(f => fd.append('files', f));
+    fd.append('order', state.mergeFiles.map((_, i) => i).join(','));
+    fd.append('out_dir', outDir);
+    box.innerHTML = '<div class="processing">处理中…</div>';
+    try {
+      const resp = await fetch('/api/merge', { method: 'POST', body: fd });
+      const data = await resp.json();
+      if (!resp.ok || !data.ok) { box.innerHTML = '<div class="error">' + escapeHtml(data.error || '拼接失败') + '</div>'; return; }
+      box.innerHTML = '<div class="result-item"><span>' + escapeHtml(data.path || '拼接完成') + '</span><a href="' + data.url + '" download>下载</a></div>';
+    } catch (e) {
+      box.innerHTML = '<div class="error">请求失败：' + escapeHtml(e.message) + '</div>';
+    }
+  }
+</script>
+</body>
+</html>
