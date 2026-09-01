@@ -27,6 +27,14 @@ data/
 *.doc
 *.ppt
 
+# === OCR 工作流数据(md-input 输入 / md-output 输出 / md-images 图片) ===
+pdf_tools/pdf-to-md/md-input/*
+pdf_tools/pdf-to-md/md-output/*
+pdf_tools/pdf-to-md/md-images/*
+!pdf_tools/pdf-to-md/md-input/.gitkeep
+!pdf_tools/pdf-to-md/md-output/.gitkeep
+!pdf_tools/pdf-to-md/md-images/.gitkeep
+
 # === 运行时 ===
 ao-output/
 runs/

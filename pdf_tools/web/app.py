@@ -8,7 +8,18 @@ from urllib.parse import quote
 from fastapi import FastAPI, File, Form, UploadFile
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 
-from ..pdf_tools import merge_pdfs, parse_names, parse_ranges, split_pdf
+# pdf-mending 目录名含连字符,Python 包导入不支持,用文件路径加载
+import importlib.util
+
+_BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_mending_path = os.path.join(_BASE, "pdf-mending", "pdf_mending.py")
+_spec = importlib.util.spec_from_file_location("pdf_mending", _mending_path)
+_mending = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_mending)
+merge_pdfs = _mending.merge_pdfs
+parse_names = _mending.parse_names
+parse_ranges = _mending.parse_ranges
+split_pdf = _mending.split_pdf
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TMP_DIR = os.path.join(BASE_DIR, "tmp")
@@ -30,31 +41,35 @@ def _safe_remove(path: str) -> None:
         pass
 
 
-def _resolve_in_project(raw: str):
-    """把绝对路径或项目内相对路径解析为绝对路径；不在项目根目录内则返回 None。"""
+def _strip_quotes(raw: str) -> str:
+    """去除路径首尾的引号(英文/中文双引号、单引号)并 strip 空白。"""
+    if not raw:
+        return raw
+    s = raw.strip()
+    while s and s[0] in "\"'“”‘’":
+        s = s[1:].strip()
+    while s and s[-1] in "\"'“”‘’":
+        s = s[:-1].strip()
+    return s
+
+
+def _resolve_path(raw: str, base: str):
+    """把用户输入解析为绝对路径：绝对路径直接用，相对路径拼到 base 下。不再限制必须在项目内。"""
     if not raw or not raw.strip():
         return None
-    raw = raw.strip()
-    if os.path.isabs(raw):
-        candidate = os.path.abspath(raw)
-    else:
-        candidate = os.path.abspath(os.path.join(PROJECT_ROOT, raw))
-    candidate = os.path.realpath(candidate)
-    root = os.path.realpath(PROJECT_ROOT)
-    try:
-        common = os.path.commonpath([candidate, root])
-    except ValueError:
+    clean = _strip_quotes(raw)
+    if not clean:
         return None
-    if common != root:
-        return None
-    return candidate
+    if os.path.isabs(clean):
+        return os.path.abspath(clean)
+    return os.path.abspath(os.path.join(base, clean))
 
 
 def _resolve_out_dir(out_dir: str):
-    """解析输出目录：空则用默认 tmp 目录，否则校验必须在项目根目录内。"""
+    """解析输出目录：空则用默认 tmp 目录，否则支持任意绝对路径或项目内相对路径。"""
     if not out_dir or not out_dir.strip():
         return TMP_DIR
-    return _resolve_in_project(out_dir)
+    return _resolve_path(out_dir, PROJECT_ROOT)
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -185,9 +200,9 @@ async def api_merge(files: list[UploadFile] = File(...), order: str = Form(""), 
 @app.get("/api/download/{filename}")
 def download(filename: str, path: str = ""):
     if path and path.strip():
-        full_path = _resolve_in_project(path)
+        full_path = _resolve_path(path, PROJECT_ROOT)
         if full_path is None:
-            return JSONResponse({"ok": False, "error": "输出目录不合法"}, status_code=400)
+            return JSONResponse({"ok": False, "error": "路径不合法"}, status_code=400)
         if not os.path.isfile(full_path):
             return JSONResponse({"ok": False, "error": "文件不存在"}, status_code=404)
         return FileResponse(full_path, media_type="application/pdf", filename=os.path.basename(full_path))

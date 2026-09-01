@@ -9,7 +9,7 @@
 import argparse
 import sys
 
-from .pdf_tools import merge_pdfs, parse_names, parse_ranges, split_pdf
+from .pdf_mending import merge_pdfs, parse_names, parse_ranges, split_pdf
 
 
 def _cmd_split(args):
