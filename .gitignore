@@ -28,12 +28,24 @@ data/
 *.ppt
 
 # === OCR 工作流数据(md-input 输入 / md-output 输出 / md-images 图片) ===
-pdf_tools/pdf-to-md/md-input/*
-pdf_tools/pdf-to-md/md-output/*
-pdf_tools/pdf-to-md/md-images/*
-!pdf_tools/pdf-to-md/md-input/.gitkeep
-!pdf_tools/pdf-to-md/md-output/.gitkeep
-!pdf_tools/pdf-to-md/md-images/.gitkeep
+pdf_tools/md-image-extractor/md-input/*
+pdf_tools/md-image-extractor/md-output/*
+pdf_tools/md-image-extractor/md-images/*
+!pdf_tools/md-image-extractor/md-input/.gitkeep
+!pdf_tools/md-image-extractor/md-output/.gitkeep
+!pdf_tools/md-image-extractor/md-images/.gitkeep
+
+# === files-to-md 材料与产物(输入 PDF 已被 *.pdf 忽略,输出 md 产物也不入库) ===
+pdf_tools/files-to-md/material-input/*
+pdf_tools/files-to-md/material_output/*
+!pdf_tools/files-to-md/material-input/.gitkeep
+!pdf_tools/files-to-md/material_output/.gitkeep
+
+# === knowledge_pipeline 材料数据(subject 下四类材料,只保留说明文件) ===
+knowledge_pipeline/**/subject/*/*
+!knowledge_pipeline/**/subject/*/.gitkeep
+!knowledge_pipeline/**/subject/*/learning_chapter.txt
+!knowledge_pipeline/**/subject/*/medical_learning.md
 
 # === 运行时 ===
 ao-output/
