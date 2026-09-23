@@ -28,6 +28,7 @@ _DDL = """
 CREATE TABLE IF NOT EXISTS knowledge_points (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     content TEXT NOT NULL,
+    title TEXT,
     chapter TEXT,
     source_file TEXT,
     kb_type TEXT NOT NULL DEFAULT '零碎',
@@ -55,12 +56,44 @@ CREATE TABLE IF NOT EXISTS exercises (
     points TEXT,
     source_file TEXT
 );
+
+-- 反向索引表:知识点 id ↔ 真题问法 / 答案要点(学习时按知识点反查真题)
+-- question 取自习题册题目,answer 为答案要点,随匹配命中写入。
+CREATE TABLE IF NOT EXISTS reverse_index (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    point_id INTEGER,
+    exam_question TEXT,
+    exam_answer TEXT,
+    FOREIGN KEY (point_id) REFERENCES knowledge_points(id) ON DELETE CASCADE
+);
 """
 
 
 # --------------------------------------------------------------------------- #
 # 连接管理
 # --------------------------------------------------------------------------- #
+
+def _column_names(conn, table):
+    """返回指定表当前已有的列名集合(幂等检查用)。"""
+    try:
+        return {r["name"] for r in conn.execute(f"PRAGMA table_info({table})")}
+    except sqlite3.Error:
+        return set()
+
+
+def _migrate_columns(conn):
+    """对已存在的旧库做幂等列迁移(新增列)。
+
+    DDL 里的 CREATE TABLE IF NOT EXISTS 只对新库生效;旧表已存在时不会自动
+    加列。这里对 knowledge_points 检查是否有 title 列,缺则 ALTER TABLE 补上,
+    保证向后兼容(旧库无需重建即可使用 title / reverse_index)。
+    """
+    try:
+        cols = _column_names(conn, "knowledge_points")
+    except sqlite3.Error:
+        return
+    if cols and "title" not in cols:
+        conn.execute("ALTER TABLE knowledge_points ADD COLUMN title TEXT")
 
 def init_db(db_path=None):
     """初始化数据库:自动建 data 目录并执行幂等建表,返回连接。
@@ -83,6 +116,7 @@ def init_db(db_path=None):
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys=ON")
     conn.executescript(_DDL)
+    _migrate_columns(conn)
     conn.commit()
     _conn = conn
     _db_path = path
@@ -112,16 +146,17 @@ def close():
 # 知识点(knowledge_points)
 # --------------------------------------------------------------------------- #
 
-def add_point(content, chapter=None, source_file=None, source_kb=None):
+def add_point(content, chapter=None, source_file=None, source_kb=None, title=None):
     """新增一条知识点,默认归属零碎库;带来源时同时登记 sources 映射。
 
+    title 为可选的知识点名称(考点锚点,反向索引用)。
     单条写操作,内部完成后统一提交。返回新知识点 id。
     """
     conn = get_conn()
     cur = conn.execute(
-        "INSERT INTO knowledge_points (content, chapter, source_file) "
-        "VALUES (?, ?, ?)",
-        (content, chapter, source_file),
+        "INSERT INTO knowledge_points (content, title, chapter, source_file) "
+        "VALUES (?, ?, ?, ?)",
+        (content, title, chapter, source_file),
     )
     point_id = cur.lastrowid
     if source_file:
@@ -133,7 +168,8 @@ def add_point(content, chapter=None, source_file=None, source_kb=None):
 def add_points(points):
     """批量新增知识点,整体用事务包裹(任一失败全部回滚)。
 
-    points: list[dict],每项至少含 content,可选 chapter/source_file/source_kb。
+    points: list[dict],每项至少含 content,可选 chapter/source_file/source_kb/title
+    (title=知识点名称/考点锚点)。
     返回新知识点 id 列表(与入参顺序一致)。
     """
     conn = get_conn()
@@ -141,9 +177,10 @@ def add_points(points):
     try:
         for item in points:
             cur = conn.execute(
-                "INSERT INTO knowledge_points (content, chapter, source_file) "
-                "VALUES (?, ?, ?)",
-                (item.get("content"), item.get("chapter"), item.get("source_file")),
+                "INSERT INTO knowledge_points (content, title, chapter, source_file) "
+                "VALUES (?, ?, ?, ?)",
+                (item.get("content"), item.get("title"), item.get("chapter"),
+                 item.get("source_file")),
             )
             point_id = cur.lastrowid
             ids.append(point_id)
@@ -306,6 +343,62 @@ def get_point_ids_by_source(source_file):
         (source_file,),
     ).fetchall()
     return [r["point_id"] for r in rows]
+
+
+# --------------------------------------------------------------------------- #
+# 反向索引(reverse_index:知识点 id ↔ 真题问法/答案)
+# --------------------------------------------------------------------------- #
+
+def add_reverse_index(point_id, exam_question, exam_answer=None):
+    """记录一条反向索引:知识点 id ↔ 真题问题(含答案要点)。
+
+    学习时按知识点反查真题问法。同一知识点可有多条(多道真题)。
+    返回新行 id。
+    """
+    conn = get_conn()
+    cur = conn.execute(
+        "INSERT INTO reverse_index (point_id, exam_question, exam_answer) "
+        "VALUES (?, ?, ?)",
+        (point_id, exam_question, exam_answer),
+    )
+    conn.commit()
+    return cur.lastrowid
+
+
+def add_reverse_indices(pairs):
+    """批量写入反向索引,整体事务包裹。
+
+    pairs: list[(point_id, exam_question, exam_answer)]。返回 True/False。
+    """
+    conn = get_conn()
+    try:
+        for pid, q, a in pairs:
+            conn.execute(
+                "INSERT INTO reverse_index (point_id, exam_question, exam_answer) "
+                "VALUES (?, ?, ?)",
+                (pid, q, a),
+            )
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    return True
+
+
+def get_reverse_index(point_id):
+    """按知识点 id 反查其全部真题问法(reverse_index 行 dict 列表)。"""
+    conn = get_conn()
+    rows = conn.execute(
+        "SELECT * FROM reverse_index WHERE point_id = ? ORDER BY id", (point_id,)
+    ).fetchall()
+    return [dict(r) for r in rows]
+
+
+def clear_reverse_index():
+    """清空反向索引表(重跑匹配前调用,避免残留)。"""
+    conn = get_conn()
+    conn.execute("DELETE FROM reverse_index")
+    conn.commit()
 
 
 # --------------------------------------------------------------------------- #

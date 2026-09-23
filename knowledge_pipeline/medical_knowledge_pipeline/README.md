@@ -15,13 +15,15 @@
 | `pipeline/md_to_db.py` | ✅ 完成 | md → SQLite 规则切分入库(仅测试用,非 LLM)。真实测试 2680 条入库成功 |
 | `pipeline/dedup.py` | ✅ 完成 | **双层次去重 + 重dup计数**:(1) 算法层 difflib 阈值0.85;(2) **语义层 Qwen embedding 余弦聚类(阈值0.85)+ 方案X**:dup_count = 去重来源文件数(跨材料数)。实测 LLM 220 条 → 171 条,去重率 22.3%,高频考点纯净可用(kb_store.set_dup 落库) |
 | `pipeline/extractor.py` | ✅ 完成 | LLM 知识点提取(openai sdk 直调 DeepSeek + 结果缓存)。实测 8 份材料共提取(含分片重跑);**新增长材料分片提取(方案A:固定块28K+重叠2K,不丢被截断尾部)** |
+| `pipeline/weight.py` | ✅ 完成 | **权重合成 + 阈值分流**(Claude Code 委托实现)。4 信号加权(0.4×norm(dup)+0.2×exam+0.15×teacher+0.25×big_q)≥0.6 进重点;归一化 cap 封顶法(K=5)/max 全局法可切;实现 distribute/apply_exam_hits/normalize_dup/compute_weight + CLI(--dry-run 安全)。单库事务写库。实测通过(SPEC_weight.md) |
+| `pipeline/config.py` | ✅ 完成 | 参数集中管理(路径/系数/阈值/归一化开关),weight 的唯一调参入口 |
 
 ### 🔲 待完成
 
 | 模块 | 状态 | 说明 |
 |---|---|---|
-| `pipeline/weight.py` | 🔲 未开始 | 权重合成 + 阈值分流(依赖 kb_store + dedup 输出) |
 | `pipeline/pipeline.py` | 🔲 未开始 | 工作流编排(一键跑完整流程) |
+| 端到端联调 | 🔲 未开始 | 真实材料 extract→dedup→weight 全流程验证 |
 
 ---
 
@@ -83,11 +85,8 @@ knowledge_pipeline/
 ## 下一步(接续从这里开始)
 
 ### 立即可做
-1. **写 `weight.py`**(四信号权重合成 + 阈值 0.6 分流):
-   - 复用 dedup 输出的 dup_count(跨材料数,方案X)
-   - 权重 = 0.4×norm(dup_count) + 0.2×is_exam_hit + 0.15×is_teacher + 0.25×is_big_q(参数可调)
-   - 分流:weight ≥ 0.6 → 重点知识库;否则留零碎
-2. **写 `pipeline.py`**(编排):extract → 全入零碎库 → 习题反向标记 → dedup 去重 → 加权分流 → 统计报告
+1. **写 `pipeline.py`**(编排):extract → 全入零碎库 → 习题反向标记 → dedup 去重 → 加权分流 → 统计报告
+   - weight.py + config.py 已完成(四信号加权、阈值 0.6、归一化 cap 可切),见 `SPEC_weight.md`
 
 ### 之后
 3. 用真实材料端到端跑通完整流水线,验证 weight 高频分流效果
