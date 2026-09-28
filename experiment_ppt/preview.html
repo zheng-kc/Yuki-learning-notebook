@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="zh"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PPT 图片预览勾选</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: "Microsoft YaHei", sans-serif; margin: 0; background: #f5f5f5; }
+  .topbar { position: sticky; top: 0; z-index: 10; background: #fff;
+            padding: 12px 16px; border-bottom: 2px solid #ccc;
+            display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .topbar h1 { font-size: 18px; margin: 0 8px 0 0; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr);
+          grid-auto-rows: 1fr; gap: 12px; padding: 16px; }
+  .card { min-width: 0; background: #fff; border: 1px solid #ddd; border-radius: 8px;
+          padding: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.1);
+          display: flex; flex-direction: column; gap: 6px;
+          transition: box-shadow .15s, transform .15s; }
+  .card:hover { box-shadow: 0 4px 12px rgba(0,0,0,.16); transform: translateY(-2px); }
+  .card.selected { outline: 3px solid #4a90d9; outline-offset: -1px; }
+  .chk { display: flex; align-items: center; gap: 6px; }
+  .thumb { width: 100%; aspect-ratio: 4/3; display: flex; align-items: center;
+           justify-content: center; background: #eee; border-radius: 4px; overflow: hidden; }
+  .thumb img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .heading { min-width: 0; color: #666; font-size: 12px; height: 18px; line-height: 18px;
+             overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .ctx { min-width: 0; color: #888; font-size: 11px; line-height: 16px; height: 48px;
+         overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3;
+         -webkit-box-orient: vertical; word-break: break-all; }
+  button { padding: 8px 16px; font-size: 14px; cursor: pointer; }
+  #selCount { font-weight: bold; }
+  @media (max-width: 900px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+</style></head>
+<body>
+  <div class="topbar">
+    <h1>PPT 图片预览勾选 — 46 张</h1>
+    <span>已选 <span id="selCount">0</span> / 46</span>
+    <button id="all">全选</button>
+    <button id="none">清空</button>
+    <button id="export">导出勾选 → selected_images.json</button>
+    <span id="msg"></span>
+  </div>
+  <div class="grid">
+        <div class="card" data-idx="0">
+          <label class="chk"><input type="checkbox" class="sel" data-idx="0">
+            <strong>img00</strong></label>
+          <div class="thumb"><img loading="lazy" src="file:///C:/Users/z'k'c/Desktop/Yuki_1.5/experiment_ppt/images/img00.jpg" alt="img00"></div>
+          <div class="heading" title="安徽医科大学口腔医学院">安徽医科大学口腔医学院</div>
+          <div class="ctx"><b>前:</b><br><b>后:</b>/&gt;</div>
+        </div>
+        <div class="card" data-idx="1">
+          <label class="chk"><input type="checkbox" class="sel" data-idx="1">
+            <strong>img01</strong></label>
+          <div class="thumb"><img loading="lazy" src="file:///C:/Users/z'k'c/Desktop/Yuki_1.5/experiment_ppt/images/img01.jpg" alt="img01"></div>
+          <div class="heading" title="安徽医科大学口腔医学院">安徽医科大学口腔医学院</div>
+          <div class="ctx"><b>前:</b><br><b>后:</b>/&gt;</div>
+        </div>
+        <div class="card" data-idx="2">
+          <label class="chk"><input type="checkbox" class="sel" data-idx="2">
+            <strong>img02</strong></label>
+          <div class="thumb"><img loading="lazy" src="file:///C:/Users/z'k'c/Desktop/Yuki_1.5/experiment_ppt/images/img02.jpg" alt="img02"></div>
+          <div class="heading" title="第一节 牙龈组织 > 牙周组织/牙龈/表面解剖">第一节 牙龈组织 &gt; 牙周组织/牙龈/表面解剖</div>
+          <div class="ctx"><b>前:</b>离龈（free gingiva） 牙龈边缘不与牙面附着的部分 龈沟（gingival sulcus） 龈沟液 2. 附着<br><b>后:</b>/&gt;</div>
+        </div>
+        <div class="card" data-idx="3">
+          <label class="chk"><input type="checkbox" class="sel" data-idx="3">
+            <strong>img03</strong></label>
+          <div class="thumb"><img loading="lazy" src="file:///C:/Users/z'k'c/Desktop/Yuki_1.5/experiment_ppt/images/img03.jpg" alt="img03"></div>
+          <div class="heading" title="第一节 牙龈组织 > 牙周组织/牙龈/表面解剖">第一节 牙龈组织 &gt; 牙周组织/牙龈/表面解剖</div>
+          <div class="ctx"><b>前:</b><br><b>后:</b>/&gt;
+
+
+牙周组织</div>
+        </div>
+        <div class="card" data-idx="4">
+          <label class="chk"><input type="checkbox" class="sel" data-idx="4">
+            <strong>img04</strong></label>
+          <div class="thumb"><img loading="lazy" src="file:///C:/Users/z'k'c/Desktop/Yuki_1.5/experiment_ppt/images/img04.jpg" alt="img04"></div>
+          <div class="heading" title="安徽医科大学口腔医学院">安徽医科大学口腔医学院</div>
+          <div class="ctx"><b>前:</b><br><b>后:</b>/&gt;
+
+
+图 1 正常的牙龈。</div>
+        </div>
+        <div class="card" data-idx="5">
+          <label class="chk"><input type="checkbox" class="sel" data-idx="5">
+            <strong>img05</strong></label>
+          <div class="thumb"><img loading="lazy" src="file:///C:/Users/z'k'c/Desktop/Yuki_1.5/experiment_ppt/images/img05.jpg" alt="img05"></div>
+          <div class="heading" title="安徽医科大学口腔医学院">安徽医科大学口腔医学院</div>
+          <div class="ctx"><b>前:</b>&lt;div style=&quot;text-align: center;&quot;&gt;&lt;div style=&quot;text-align: cen<br><b>后:</b>/&gt;</div>
+        </div>
+        <div class="card" data-idx="6">
+          <label class="chk"><input type="checkbox" class="sel" data-idx="6">
+            <strong>img06</strong></label>
+          <div class="thumb"><img loading="lazy" src="file:///C:/Users/z'k'c/Desktop/Yuki_1.5/experiment_ppt/images/img06.jpg" alt="img06"></div>
+          <div class="heading" title="安徽医科大学口腔医学院 > 牙周组织/牙龈/表面解剖 > 牙间乳头">安徽医科大学口腔医学院 &gt; 牙周组织/牙龈/表面解剖 &gt; 牙间乳头</div>
+          <div class="ctx"><b>前:</b>概念：位于邻近两牙间隙的牙龈（龈乳头）龈谷 概念：后牙颊侧和舌（腭）侧龈乳头间的低平凹下处 意义：<br><b>后:</b>/&gt;</div>
+        </div>
+        <div class="card" data-idx="7">
+          <label class="chk"><input type="checkbox" class="sel" data-idx="7">
+            <strong>img07</strong></label>
+          <div class="thumb"><img loading="lazy" src="file:///C:/Users/z'k'c/Desktop/Yuki_1.5/experiment_ppt/images/img07.jpg" alt="img07"></div>
+          <div class="heading" title="安徽医科大学口腔医学院 > 牙周组织/牙龈/组织结构 > 牙龈上皮（gingival）">安徽医科大学口腔医学院 &gt; 牙周组织/牙龈/组织结构 &gt; 牙龈上皮（gingival）</div>
+          <div class="ctx"><b>前:</b>epithelium) 复层鳞状上皮，表面有角化 上皮钉突多而细长 偶见黑色素细胞<br><b>后:</b>/&gt;</div>
+        </div>
+        <div class="card" data-idx="8">
+          <label class="chk"><input type="checkbox" class="sel" data-idx="8">
+            <strong>img08</strong></label>
+          <div class="thumb"><img loading="lazy" src="file:///C:/Users/z'k'c/Desktop/Yuki_1.5/experiment_ppt/images/img08.jpg" alt="img08"></div>
+          <div class="heading" title="安徽医科大学口腔医学院 > 牙周组织/牙龈/组织结构 > 龈沟上皮（salcular">安徽医科大学口腔医学院 &gt; 牙周组织/牙龈/组织结构 &gt; 龈沟上皮（salcular</div>
+          <div class="ctx"><b>前:</b>epithelium) 复层鳞状上皮，无角化， 有钉突 与结合上皮有明显分界 抵抗机械力能力弱 固有层常见白细胞浸润<br><b>后:</b>/&gt;</div>
+        </div>
+        <div class="card" data-idx="9">
+          <label class="chk"><input type="checkbox" class="sel" data-idx="9">
+            <strong>img09</strong></label>
+          <div class="thumb"><img loading="lazy" src="file:///C:/Users/z'k'c/Desktop/Yuki_1.5/experiment_ppt/images/img09.jpg" alt="img09"></div>
+          <div class="heading" title="安徽医科大学口腔医学院 > 牙周组织/牙龈/组织结构">安徽医科大学口腔医学院 &gt; 牙周组织/牙龈/组织结构</div>
+          <div class="ctx"><b>前:</b>结合上皮（junctional epithelium）：牙龈上皮附着在牙表面的部分 无角化鳞状上皮，无钉突 细胞长轴与牙<br><b>后:</b>/&gt;</div>
+        </div>
+        <div class="card" data-idx="10">
+          <label class="chk"><input type="checkbox" class="sel" data-idx="10">
+            <strong>img10</strong></label>
+          <div class="thumb"><img loading="lazy" src="file:///C:/Users/z'k'c/Desktop/Yuki_1.5/experiment_ppt/images/img10.jpg" alt="img10"></div>
+          <div class="heading" title="安徽医科大学口腔医学院 > 牙周组织/牙龈/组织结构">安徽医科大学口腔医学院 &gt; 牙周组织/牙龈/组织结构</div>
+          <div class="ctx"><b>前:</b><br><b>后:</b>/&gt;</div>
+        </div>
+        <div class="card" data-idx="11">
+          <label class="chk"><input type="checkbox" class="sel" data-idx="11">
+            <strong>img11</strong></label>
+          <div class="thumb"><img loading="lazy" src="file:///C:/Users/z'k'c/Desktop/Yuki_1.5/experiment_ppt/images/img11.jpg" alt="img11"></div>
+          <div class="heading" title="安徽医科大学口腔医学院 > 牙周组织/牙龈/组织结构">安徽医科大学口腔医学院 &gt; 牙周组织/牙龈/组织结构</div>
+          <div class="ctx"><b>前:</b><br><b>后:</b>/&gt;</div>
+        </div>
+        <div class="card" data-idx="12">
+          <label class="chk"><input type="checkbox" class="sel" data-idx="12">
+            <strong>img12</strong></label>
+          <div class="thumb"><img loading="lazy" src="file:///C:/Users/z'k'c/Desktop/Yuki_1.5/experiment_ppt/images/img12.jpg" alt="img12"></div>
+          <div class="heading" title="安徽医科大学口腔医学院 > 牙周组织/牙龈/组织结构 > 结合上皮：超微结构">安徽医科大学口腔医学院 &gt; 牙周组织/牙龈/组织结构 &gt; 结合上皮：超微结构</div>
+          <div class="ctx"><b>前:</b>高尔基体发达、粗面内质网和线粒体丰富 张力细丝较少，桥粒少，细胞外间隙增大 龈沟底部细胞中含溶酶体较多 更新细胞向牙表面<br><b>后:</b>/&gt;</div>
+        </div>
+        <div class="card" data-idx="13">
+          <label class="chk"><input type="checkbox" class="sel" data-idx="13">
+            <strong>img13</strong></label>
+          <div class="thumb"><img loading="lazy" src="file:///C:/Users/z'k'c/Desktop/Yuki_1.5/experiment_ppt/images/img13.jpg" alt="img13"></div>
+          <div class="heading" title="安徽医科大学口腔医学院 > 牙周组织/牙龈/组织结构 > 结合上皮：超微结构">安徽医科大学口腔医学院 &gt; 牙周组织/牙龈/组织结构 &gt; 结合上皮：超微结构</div>
+          <div class="ctx"><b>前:</b><br><b>后:</b>/&gt;</div>
+        </div>
+        <div class="card" data-idx="14">
+          <label class="chk"><input type="checkbox" class="sel" data-idx="14">
+            <strong>img14</strong></label>
+          <div class="thumb"><img loading="lazy" src="file:///C:/Users/z'k'c/Desktop/Yuki_1.5/experiment_ppt/images/img14.jpg" alt="img14"></div>
+          <div class="heading" title="安徽医科大学口腔医学院 > 牙周组织/牙龈/组织结构">安徽医科大学口腔医学院 &gt; 牙周组织/牙龈/组织结构</div>
+          <div class="ctx"><b>前:</b>龈牙组 dentogingival g. 牙骨膜组 dentoperidosteal g. 越隔组 transsepta<br><b>后:</b>/&gt;</div>
+        </div>
+        <div class="card" data-idx="15">
+          <label class="chk"><input type="checkbox" class="sel" data-idx="15">
+            <strong>img15</strong></label>
+          <div class="thumb"><img loading="lazy" src="file:///C:/Users/z'k'c/Desktop/Yuki_1.5/experiment_ppt/images/img15.jpg" alt="img15"></div>
+          <div class="heading" title="安徽医科大学口腔医学院 > 牙周组织/牙龈/组织结构">安徽医科大学口腔医学院 &gt; 牙周组织/牙龈/组织结构</div>
+          <div class="ctx"><b>前:</b><br><b>后:</b>/&gt;</div>
+        </div>
+        <div class="card" data-idx="16">
+          <label class="chk"><input type="checkbox" class="sel" data-idx="16">
+            <strong>img16</strong></label>
+          <div class="thumb"><img loading="lazy" src="file:///C:/Users/z'k'c/Desktop/Yuki_1.5/experiment_ppt/images/img16.jpg" alt="img16"></div>
+          <div class="heading" title="第二节 牙周韧带 > 牙周组织/牙周膜/一般特点">第二节 牙周韧带 &gt; 牙周组织/牙周膜/一般特点</div>
+          <div class="ctx"><b>前:</b>牙根和牙槽骨之间的组织 性质：环绕牙根的致密结缔组织 厚度：为0.15～0.38 mm 构成：细胞、基质和纤维 功能：将<br><b>后:</b>/&gt;</div>
+        </div>
+        <div class="card" data-idx="17">
+          <label class="chk"><input type="checkbox" class="sel" data-idx="17">
+            <strong>img17</strong></label>
+          <div class="thumb"><img loading="lazy" src="file:///C:/Users/z'k'c/Desktop/Yuki_1.5/experiment_ppt/images/img17.jpg" alt="img17"></div>
+          <div class="heading" title="第二节 牙周韧带 > 牙周组织/牙周膜/组织结构">第二节 牙周韧带 &gt; 牙周组织/牙周膜/组织结构</div>
+          <div class="ctx"><b>前:</b>主纤维走行 穿通纤维<br><b>后:</b>/&gt;</div>
+        </div>
+        <div class="card" data-idx="18">
+          <label class="chk"><input type="checkbox" class="sel" data-idx="18">
+            <strong>img18</strong></label>
+          <div class="thumb"><img loading="lazy" src="file:///C:/Users/z'k'c/Desktop/Yuki_1.5/experiment_ppt/images/img18.jpg" alt="img18"></div>
+          <div class="heading" title="第二节 牙周韧带 > 牙周组织/牙周膜/组织结构">第二节 牙周韧带 &gt; 牙周组织/牙周膜/组织结构</div>
+          <div class="ctx"><b>前:</b><br><b>后:</b>/&gt;
+
+
+组织</div>
+        </div>
+        <div class="card" data-idx="19">
+          <label class="chk"><input type="checkbox" class="sel" data-idx="19">
+            <strong>img19</strong></label>
+          <div class="thumb"><img loading="lazy" src="file:///C:/Users/z'k'c/Desktop/Yuki_1.5/experiment_ppt/images/img19.jpg" alt="img19"></div>
+          <div class="heading" title="1. 主纤维束">1. 主纤维束</div>
+          <div class="ctx"><b>前:</b>lveolar crest group） 2. 水平组 (horizontal group) 3. 斜纤维组（obliq<br><b>后:</b>/&gt;</div>
+        </div>
+        <div class="card" data-idx="20">
+          <label class="chk"><input type="checkbox" class="sel" data-idx="20">
+            <strong>img20</strong></label>
+          <div class="thumb"><img loading="lazy" src="file:///C:/Users/z'k'c/Desktop/Yuki_1.5/experiment_ppt/images/img20.jpg" alt="img20"></div>
+          <div class="heading" title="1. 主纤维束 > 牙周组织/牙周膜/">1. 主纤维束 &gt; 牙周组织/牙周膜/</div>
+          <div class="ctx"><b>前:</b>主纤维分组： 牙槽嵴组 (alveolar crest group) 水平组（horizontal group） 斜行组<br><b>后:</b>/&gt;
+
+
+牙槽嵴组
+
+斜行组</div>
+        </div>
+        <div class="card" data-idx="21">
+          <label class="chk"><input type="checkbox" class="sel" data-idx="21">
+            <strong>img21</strong></label>
+          <div class="thumb"><img loading="lazy" src="file:///C:/Users/z'k'c/Desktop/Yuki_1.5/experiment_ppt/images/img21.jpg" alt="img21"></div>
+          <div class="heading" title="1. 主纤维束 > 牙周组织/牙周膜/">1. 主纤维束 &gt; 牙周组织/牙周膜/</div>
+          <div class="ctx"><b>前:</b>牙槽嵴组 斜行组<br><b>后:</b>/&gt;</div>
+        </div>
+        <div class="card" data-idx="22">
+          <label class="chk"><input type="checkbox" class="sel" data-idx="22">
+            <strong>img22</strong></label>
+          <div class="thumb"><img loading="lazy" src="file:///C:/Users/z'k'c/Desktop/Yuki_1.5/experiment_ppt/images/img22.jpg" alt="img22"></div>
+          <div class="heading" title="1. 主纤维束 > 牙周组织/牙周膜/">1. 主纤维束 &gt; 牙周组织/牙周膜/</div>
+          <div class="ctx"><b>前:</b><br><b>后:</b>/&gt;</div>
+        </div>
+        <div class="card" data-idx="23">
+          <label class="chk"><input type="checkbox" class="sel" data-idx="23">
+            <strong>img23</strong></label>
+          <div class="thumb"><img loading="lazy" src="file:///C:/Users/z'k'c/Desktop/Yuki_1.5/experiment_ppt/images/img23.jpg" alt="img23"></div>
+          <div class="heading" title="1. 主纤维束 > 牙周组织/牙周膜/组织结构">1. 主纤维束 &gt; 牙周组织/牙周膜/组织结构</div>
+          <div class="ctx"><b>前:</b>根尖组（apical group）： 走行： 功能： 根间组 (interradicular group) 走行： 功能<br><b>后:</b>/&gt;</div>
+        </div>
+        <div class="card" data-idx="24">
+          <label class="chk"><input type="checkbox" class="sel" data-idx="24">
+            <strong>img24</strong></label>
+          <div class="thumb"><img loading="lazy" src="file:///C:/Users/z'k'c/Desktop/Yuki_1.5/experiment_ppt/images/img24.jpg" alt="img24"></div>
+          <div class="heading" title="1. 主纤维束 > 牙周组织/牙周膜/组织结构">1. 主纤维束 &gt; 牙周组织/牙周膜/组织结构</div>
+          <div class="ctx"><b>前:</b><br><b>后:</b>/&gt;</div>
+        </div>
+        <div class="card" data-idx="25">
+          <label class="chk"><input type="checkbox" class="sel" data-idx="25">
+            <strong>img25</strong></label>
+          <div class="thumb"><img loading="lazy" src="file:///C:/Users/z'k'c/Desktop/Yuki_1.5/experiment_ppt/images/img25.jpg" alt="img25"></div>
+          <div class="heading" title="牙周组织/牙周膜/组织结构 细胞">牙周组织/牙周膜/组织结构 细胞</div>
+          <div class="ctx"><b>前:</b>成纤维细胞：分布、形态、功能<br><b>后:</b>/&gt;</div>
+        </div>
+        <div class="card" data-idx="26">
+          <label class="chk"><input type="checkbox" class="sel" data-idx="26">
+            <strong>img26</strong></label>
+          <div class="thumb"><img loading="lazy" src="file:///C:/Users/z'k'c/Desktop/Yuki_1.5/experiment_ppt/images/img26.jpg" alt="img26"></div>
+          <div class="heading" title="牙周组织/牙周膜/组织结构 细胞 > 牙周组织/牙周膜/组织结构">牙周组织/牙周膜/组织结构 细胞 &gt; 牙周组织/牙周膜/组织结构</div>
+          <div class="ctx"><b>前:</b>细胞 成牙骨质细胞：分布、形态、功能<br><b>后:</b>/&gt;</div>
+        </div>
+        <div class="card" data-idx="27">
+          <label class="chk"><input type="checkbox" class="sel" data-idx="27">
+            <strong>img27</strong></label>
+          <div class="thumb"><img loading="lazy" src="file:///C:/Users/z'k'c/Desktop/Yuki_1.5/experiment_ppt/images/img27.jpg" alt="img27"></div>
+          <div class="heading" title="牙周组织/牙周膜/组织结构 细胞 > 牙周组织/牙周膜/组织结构">牙周组织/牙周膜/组织结构 细胞 &gt; 牙周组织/牙周膜/组织结构</div>
+          <div class="ctx"><b>前:</b>成骨细胞：分布、形态、功能<br><b>后:</b>/&gt;</div>
+        </div>
+        <div class="card" data-idx="28">
+          <label class="chk"><input type="checkbox" class="sel" data-idx="28">
+            <strong>img28</strong></label>
+          <div class="thumb"><img loading="lazy" src="file:///C:/Users/z'k'c/Desktop/Yuki_1.5/experiment_ppt/images/img28.jpg" alt="img28"></div>
+          <div class="heading" title="牙周组织/牙周膜/组织结构 细胞 > 牙周组织/牙周膜/组织结构">牙周组织/牙周膜/组织结构 细胞 &gt; 牙周组织/牙周膜/组织结构</div>
+          <div class="ctx"><b>前:</b><br><b>后:</b>/&gt;</div>
+        </div>
+        <div class="card" data-idx="29">
+          <label class="chk"><input type="checkbox" class="sel" data-idx="29">
+            <strong>img29</strong></label>
+          <div class="thumb"><img loading="lazy" src="file:///C:/Users/z'k'c/Desktop/Yuki_1.5/experiment_ppt/images/img29.jpg" alt="img29"></div>
+          <div class="heading" title="牙周组织/牙周膜/组织结构 细胞 > 牙周组织/牙周膜/组织结构">牙周组织/牙周膜/组织结构 细胞 &gt; 牙周组织/牙周膜/组织结构</div>
+          <div class="ctx"><b>前:</b>上皮剩余：部位、形态、意义<br><b>后:</b>/&gt;</div>
+        </div>
+        <div class="card" data-idx="30">
+          <label class="chk"><input type="checkbox" class="sel" data-idx="30">
+            <strong>img30</strong></label>
+          <div class="thumb"><img loading="lazy" src="file:///C:/Users/z'k'c/Desktop/Yuki_1.5/experiment_ppt/images/img30.jpg" alt="img30"></div>
+          <div class="heading" title="牙周组织/牙周膜/组织结构 细胞 > 牙周组织/牙周膜/组织结构">牙周组织/牙周膜/组织结构 细胞 &gt; 牙周组织/牙周膜/组织结构</div>
+          <div class="ctx"><b>前:</b><br><b>后:</b>/&gt;</div>
+        </div>
+        <div class="card" data-idx="31">
+          <label class="chk"><input type="checkbox" class="sel" data-idx="31">
+            <strong>img31</strong></label>
+          <div class="thumb"><img loading="lazy" src="file:///C:/Users/z'k'c/Desktop/Yuki_1.5/experiment_ppt/images/img31.jpg" alt="img31"></div>
+          <div class="heading" title="牙周组织/牙周膜/组织结构 细胞 > 牙周组织/牙周膜/组织结构">牙周组织/牙周膜/组织结构 细胞 &gt; 牙周组织/牙周膜/组织结构</div>
+          <div class="ctx"><b>前:</b>破骨细胞：分布、形态、功能 破牙骨质细胞： 分布、形态、 功能 未分化间充质 细胞<br><b>后:</b>/&gt;</div>
+        </div>
+        <div class="card" data-idx="32">
+          <label class="chk"><input type="checkbox" class="sel" data-idx="32">
+            <strong>img32</strong></label>
+          <div class="thumb"><img loading="lazy" src="file:///C:/Users/z'k'c/Desktop/Yuki_1.5/experiment_ppt/images/img32.jpg" alt="img32"></div>
+          <div class="heading" title="牙周组织/牙周膜/组织结构 细胞 > 牙周组织/牙周膜/组织结构 > 血管和淋巴管和神经">牙周组织/牙周膜/组织结构 细胞 &gt; 牙周组织/牙周膜/组织结构 &gt; 血管和淋巴管和神经</div>
+          <div class="ctx"><b>前:</b>2来自牙槽骨；3来自上、下牙槽动脉 淋巴管 神经：有4种神经末稍：1.游离末稍：属于伤害感受器和机械感受器。2.Ruff<br><b>后:</b>/&gt;</div>
+        </div>
+        <div class="card" data-idx="33">
+          <label class="chk"><input type="checkbox" class="sel" data-idx="33">
+            <strong>img33</strong></label>
+          <div class="thumb"><img loading="lazy" src="file:///C:/Users/z'k'c/Desktop/Yuki_1.5/experiment_ppt/images/img33.jpg" alt="img33"></div>
+          <div class="heading" title="牙周组织/牙周膜/组织结构 细胞 > 牙周组织/牙周膜/组织结构 > 血管和淋巴管和神经">牙周组织/牙周膜/组织结构 细胞 &gt; 牙周组织/牙周膜/组织结构 &gt; 血管和淋巴管和神经</div>
+          <div class="ctx"><b>前:</b><br><b>后:</b>/&gt;</div>
+        </div>
+        <div class="card" data-idx="34">
+          <label class="chk"><input type="checkbox" class="sel" data-idx="34">
+            <strong>img34</strong></label>
+          <div class="thumb"><img loading="lazy" src="file:///C:/Users/z'k'c/Desktop/Yuki_1.5/experiment_ppt/images/img34.jpg" alt="img34"></div>
+          <div class="heading" title="牙周组织/牙周膜/组织结构">牙周组织/牙周膜/组织结构</div>
+          <div class="ctx"><b>前:</b>牙骨质小体 形态 来源<br><b>后:</b>/&gt;</div>
+        </div>
+        <div class="card" data-idx="35">
+          <label class="chk"><input type="checkbox" class="sel" data-idx="35">
+            <strong>img35</strong></label>
+          <div class="thumb"><img loading="lazy" src="file:///C:/Users/z'k'c/Desktop/Yuki_1.5/experiment_ppt/images/img35.jpg" alt="img35"></div>
+          <div class="heading" title="牙周组织/牙周膜/组织结构 > 二：牙周膜（牙周韧带）的功能">牙周组织/牙周膜/组织结构 &gt; 二：牙周膜（牙周韧带）的功能</div>
+          <div class="ctx"><b>前:</b><br><b>后:</b>/&gt;
+
+
+1. 支持
+
+2. 感觉
+
+3. 营养
+
+4. 形成功能</div>
+        </div>
+        <div class="card" data-idx="36">
+          <label class="chk"><input type="checkbox" class="sel" data-idx="36">
+            <strong>img36</strong></label>
+          <div class="thumb"><img loading="lazy" src="file:///C:/Users/z'k'c/Desktop/Yuki_1.5/experiment_ppt/images/img36.jpg" alt="img36"></div>
+          <div class="heading" title="安徽医科大学口腔医学院">安徽医科大学口腔医学院</div>
+          <div class="ctx"><b>前:</b><br><b>后:</b>/&gt;</div>
+        </div>
+        <div class="card" data-idx="37">
+          <label class="chk"><input type="checkbox" class="sel" data-idx="37">
+            <strong>img37</strong></label>
+          <div class="thumb"><img loading="lazy" src="file:///C:/Users/z'k'c/Desktop/Yuki_1.5/experiment_ppt/images/img37.jpg" alt="img37"></div>
+          <div class="heading" title="安徽医科大学口腔医学院">安徽医科大学口腔医学院</div>
+          <div class="ctx"><b>前:</b><br><b>后:</b>/&gt;</div>
+        </div>
+        <div class="card" data-idx="38">
+          <label class="chk"><input type="checkbox" class="sel" data-idx="38">
+            <strong>img38</strong></label>
+          <div class="thumb"><img loading="lazy" src="file:///C:/Users/z'k'c/Desktop/Yuki_1.5/experiment_ppt/images/img38.jpg" alt="img38"></div>
+          <div class="heading" title="安徽医科大学口腔医学院">安徽医科大学口腔医学院</div>
+          <div class="ctx"><b>前:</b><br><b>后:</b>/&gt;</div>
+        </div>
+        <div class="card" data-idx="39">
+          <label class="chk"><input type="checkbox" class="sel" data-idx="39">
+            <strong>img39</strong></label>
+          <div class="thumb"><img loading="lazy" src="file:///C:/Users/z'k'c/Desktop/Yuki_1.5/experiment_ppt/images/img39.jpg" alt="img39"></div>
+          <div class="heading" title="安徽医科大学口腔医学院">安徽医科大学口腔医学院</div>
+          <div class="ctx"><b>前:</b><br><b>后:</b>/&gt;</div>
+        </div>
+        <div class="card" data-idx="40">
+          <label class="chk"><input type="checkbox" class="sel" data-idx="40">
+            <strong>img40</strong></label>
+          <div class="thumb"><img loading="lazy" src="file:///C:/Users/z'k'c/Desktop/Yuki_1.5/experiment_ppt/images/img40.jpg" alt="img40"></div>
+          <div class="heading" title="安徽医科大学口腔医学院">安徽医科大学口腔医学院</div>
+          <div class="ctx"><b>前:</b><br><b>后:</b>/&gt;</div>
+        </div>
+        <div class="card" data-idx="41">
+          <label class="chk"><input type="checkbox" class="sel" data-idx="41">
+            <strong>img41</strong></label>
+          <div class="thumb"><img loading="lazy" src="file:///C:/Users/z'k'c/Desktop/Yuki_1.5/experiment_ppt/images/img41.jpg" alt="img41"></div>
+          <div class="heading" title="安徽医科大学口腔医学院">安徽医科大学口腔医学院</div>
+          <div class="ctx"><b>前:</b><br><b>后:</b>/&gt;</div>
+        </div>
+        <div class="card" data-idx="42">
+          <label class="chk"><input type="checkbox" class="sel" data-idx="42">
+            <strong>img42</strong></label>
+          <div class="thumb"><img loading="lazy" src="file:///C:/Users/z'k'c/Desktop/Yuki_1.5/experiment_ppt/images/img42.jpg" alt="img42"></div>
+          <div class="heading" title="安徽医科大学口腔医学院">安徽医科大学口腔医学院</div>
+          <div class="ctx"><b>前:</b><br><b>后:</b>/&gt;</div>
+        </div>
+        <div class="card" data-idx="43">
+          <label class="chk"><input type="checkbox" class="sel" data-idx="43">
+            <strong>img43</strong></label>
+          <div class="thumb"><img loading="lazy" src="file:///C:/Users/z'k'c/Desktop/Yuki_1.5/experiment_ppt/images/img43.jpg" alt="img43"></div>
+          <div class="heading" title="安徽医科大学口腔医学院 > 牙周组织/牙槽骨/组织结构">安徽医科大学口腔医学院 &gt; 牙周组织/牙槽骨/组织结构</div>
+          <div class="ctx"><b>前:</b>松质骨：骨小梁和骨髓组成，位于密质骨和固有牙槽骨之间 结构：骨小梁呈板层排列伴哈弗系统 分布：前牙区松质骨含量少，后牙多<br><b>后:</b>/&gt;</div>
+        </div>
+        <div class="card" data-idx="44">
+          <label class="chk"><input type="checkbox" class="sel" data-idx="44">
+            <strong>img44</strong></label>
+          <div class="thumb"><img loading="lazy" src="file:///C:/Users/z'k'c/Desktop/Yuki_1.5/experiment_ppt/images/img44.jpg" alt="img44"></div>
+          <div class="heading" title="安徽医科大学口腔医学院 > 牙周组织/牙槽骨/组织结构">安徽医科大学口腔医学院 &gt; 牙周组织/牙槽骨/组织结构</div>
+          <div class="ctx"><b>前:</b><br><b>后:</b>/&gt;</div>
+        </div>
+        <div class="card" data-idx="45">
+          <label class="chk"><input type="checkbox" class="sel" data-idx="45">
+            <strong>img45</strong></label>
+          <div class="thumb"><img loading="lazy" src="file:///C:/Users/z'k'c/Desktop/Yuki_1.5/experiment_ppt/images/img45.jpg" alt="img45"></div>
+          <div class="heading" title="安徽医科大学口腔医学院 > 三、生物学特性">安徽医科大学口腔医学院 &gt; 三、生物学特性</div>
+          <div class="ctx"><b>前:</b>牙槽骨是高度可塑性组织，也是全身骨骼中变化最活跃的部分，与牙齿的发育、萌出，乳恒牙交替咀嚼功能都有明显的关系。 临床上利<br><b>后:</b>/&gt;</div>
+        </div></div>
+<script>
+  const cards = document.querySelectorAll('.card');
+  const selCount = document.getElementById('selCount');
+  function refresh() {
+    const n = document.querySelectorAll('.sel:checked').length;
+    selCount.textContent = n;
+    cards.forEach(c => c.classList.toggle('selected', c.querySelector('.sel').checked));
+  }
+  cards.forEach(c => c.querySelector('.sel').addEventListener('change', refresh));
+  document.getElementById('all').onclick = () => {
+    document.querySelectorAll('.sel').forEach(b => b.checked = true); refresh(); };
+  document.getElementById('none').onclick = () => {
+    document.querySelectorAll('.sel').forEach(b => b.checked = false); refresh(); };
+  document.getElementById('export').onclick = () => {
+    const sel = [...document.querySelectorAll('.sel:checked')].map(b => +b.dataset.idx);
+    const blob = new Blob([JSON.stringify({selected: sel}, null, 2)], {type: 'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'selected_images.json';
+    a.click();
+    document.getElementById('msg').textContent = '已导出 ' + sel.length + ' 张';
+  };
+</script>
+</body></html>
