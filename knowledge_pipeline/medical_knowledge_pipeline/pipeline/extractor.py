@@ -412,6 +412,7 @@ def main(argv=None):
             points = extract_file(path, prompt_path, chapter_path, cache_path, args.force)
             items = [
                 {"content": p["content"], "chapter": p.get("chapter"),
+                 "title": p.get("title"),
                  "source_file": fname, "source_kb": "复习资料"}
                 for p in points if p.get("content")
             ]
